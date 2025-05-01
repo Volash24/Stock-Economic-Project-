@@ -1,111 +1,122 @@
-"use client"
+'use client'
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from 'react'
 import {
   createChart,
+  UTCTimestamp,
   CandlestickSeries,
   HistogramSeries,
-  UTCTimestamp,
   CandlestickData,
   HistogramData,
-} from "lightweight-charts"
-import { useTheme } from "next-themes"
+  IChartApi,
+  ISeriesApi,
+} from 'lightweight-charts'
+import { useTheme } from 'next-themes'
+
+// Full OHLC object shape
+export interface Candle {
+  time: UTCTimestamp
+  open: number
+  high: number
+  low: number
+  close: number
+  volume?: number
+}
 
 interface CandlestickChartProps {
-  data: Array<[number, number]>
+  data: Candle[]
   positiveColor?: string
   negativeColor?: string
+  height?: number
 }
 
 export function CandlestickChart({
   data,
-  positiveColor = "var(--success)",
-  negativeColor = "var(--destructive)",
+  positiveColor = 'var(--success)',
+  negativeColor = 'var(--destructive)',
+  height = 400,
 }: CandlestickChartProps) {
-  const chartContainerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const chartRef = useRef<IChartApi | null>(null)
+  const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
+  const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null)
   const { resolvedTheme } = useTheme()
-  const isDarkTheme = resolvedTheme === "dark"
+  const isDarkTheme = resolvedTheme === 'dark'
 
   useEffect(() => {
-    if (!chartContainerRef.current) return
+    if (!containerRef.current) return
 
-    // Compute real CSS colors or fallbacks
-    const getColorValue = (variable: string) => {
-      const val = getComputedStyle(document.documentElement)
-        .getPropertyValue(variable)
-        .trim()
-      return val || (isDarkTheme ? "#7c3aed" : "#22c55e")
-    }
-    const upColor = getColorValue("--success")
-    const downColor = getColorValue("--destructive")
-
-    // Initialize chart
-    const chart = createChart(chartContainerRef.current, {
+    // Chart initialization
+    const chart = createChart(containerRef.current, {
+      width: containerRef.current.clientWidth,
+      height,
       layout: {
-        background: { color: isDarkTheme ? "#1e293b" : "#ffffff" },
-        textColor: isDarkTheme ? "#e2e8f0" : "#1e293b",
+        background: { color: isDarkTheme ? '#0f172a' : '#ffffff' },
+        textColor: isDarkTheme ? '#e2e8f0' : '#1e293b',
       },
       grid: {
-        vertLines: { color: isDarkTheme ? "#334155" : "#e2e8f0" },
-        horzLines: { color: isDarkTheme ? "#334155" : "#e2e8f0" },
+        vertLines: { color: isDarkTheme ? '#1e293b' : '#f1f5f9' },
+        horzLines: { color: isDarkTheme ? '#1e293b' : '#f1f5f9' },
       },
-      width: chartContainerRef.current.clientWidth,
-      height: 400,
+      rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 } },
+      timeScale: { timeVisible: true, secondsVisible: false },
     })
-
-    // Build OHLC data with UTCTimestamp
-    const ohlcData: CandlestickData<UTCTimestamp>[] = data.map(
-      ([ms, price], i, arr) => ({
-        time: (ms / 1000) as UTCTimestamp,
-        open: price,
-        high: price + price * 0.01,
-        low: price - price * 0.01,
-        close: (arr[i + 1]?.[1] ?? price),
-      })
-    )
 
     // Candlestick series
     const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor,
-      downColor,
+      upColor: positiveColor,
+      downColor: negativeColor,
       borderVisible: false,
-      wickUpColor: upColor,
-      wickDownColor: downColor,
+      wickUpColor: positiveColor,
+      wickDownColor: negativeColor,
     })
-    candlestickSeries.setData(ohlcData)
 
     // Volume histogram series
     const volumeSeries = chart.addSeries(HistogramSeries, {
-      color: "#26a69a",
-      priceFormat: { type: "volume" },
-      priceScaleId: "",
+      color: '#26a69a',
+      priceFormat: { type: 'volume' },
+      priceScaleId: '',
     })
-    // Apply scale margins on the volume's price scale
     volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } })
 
-    // Build volume data
-    const volumeData: HistogramData<UTCTimestamp>[] = ohlcData.map(d => ({
+    // Store references
+    chartRef.current = chart
+    candleSeriesRef.current = candlestickSeries
+    volumeSeriesRef.current = volumeSeries
+
+    // Prepare and set data
+    const ohlcData: CandlestickData<UTCTimestamp>[] = data.map(d => ({
       time: d.time,
-      value: Math.random() * 100_000 + 50_000,
-      color: d.close >= d.open ? upColor : downColor,
+      open: d.open,
+      high: d.high,
+      low: d.low,
+      close: d.close,
+    }))
+    candlestickSeries.setData(ohlcData)
+
+    const volumeData: HistogramData<UTCTimestamp>[] = data.map(d => ({
+      time: d.time,
+      value: d.volume ?? 0,
+      color: d.close >= d.open ? positiveColor : negativeColor,
     }))
     volumeSeries.setData(volumeData)
 
+    // Fit content
     chart.timeScale().fitContent()
 
-    // Handle resize
+    // Resize handling
     const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth })
+      if (containerRef.current) {
+        chart.applyOptions({ width: containerRef.current.clientWidth })
       }
     }
-    window.addEventListener("resize", handleResize)
+    window.addEventListener('resize', handleResize)
 
     return () => {
-      window.removeEventListener("resize", handleResize)
+      window.removeEventListener('resize', handleResize)
       chart.remove()
     }
-  }, [data, isDarkTheme, positiveColor, negativeColor])
+  }, [data, positiveColor, negativeColor, isDarkTheme, height])
 
-  return <div ref={chartContainerRef} className="w-full h-full" />
+  return <div ref={containerRef} style={{ width: '100%' }} />
 }
