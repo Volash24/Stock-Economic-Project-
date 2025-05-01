@@ -1,59 +1,52 @@
-"use client"
+'use client'
 
-import { useEffect, useRef } from "react"
+import React, { useEffect, useRef } from 'react'
 
 interface SparklineProps {
-  data: Array<[number, number]>
+  data: number[]
   color?: string
 }
 
-export function Sparkline({ data, color = "var(--success)" }: SparklineProps) {
+export function Sparkline({ data, color }: SparklineProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    if (!canvasRef.current) return
-
     const canvas = canvasRef.current
-    const ctx = canvas.getContext("2d")
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Get the device pixel ratio
+    // Handle high-DPI screens
     const dpr = window.devicePixelRatio || 1
-
-    // Set the canvas dimensions accounting for device pixel ratio
     canvas.width = canvas.offsetWidth * dpr
     canvas.height = canvas.offsetHeight * dpr
-
-    // Scale the context to ensure correct drawing
     ctx.scale(dpr, dpr)
 
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    // Clear
+    ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight)
 
-    // Extract just the price values
-    const prices = data.map(([_, price]) => price)
+    const prices = data
+    if (prices.length === 0) return
 
-    // Find min and max for scaling
+    // Compute bounds
     const min = Math.min(...prices)
     const max = Math.max(...prices)
-    const range = max - min || 1 // Avoid division by zero
+    const range = max - min || 1
 
-    // Determine if trend is positive or negative
-    const isPositive = prices[prices.length - 1] >= prices[0]
-
-    // Set color based on trend
-    const actualColor = isPositive
-      ? getComputedStyle(document.documentElement).getPropertyValue("--success").trim() || "#22c55e"
-      : getComputedStyle(document.documentElement).getPropertyValue("--destructive").trim() || "#ef4444"
-
-    // Draw the sparkline
-    ctx.beginPath()
-    ctx.strokeStyle = actualColor
-    ctx.lineWidth = 2.5 // Make line thicker for better visibility
+    // Determine stroke color
+    const cssColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--success')
+      .trim() || '#22c55e'
+    const actualColor = color ?? cssColor
+        ctx.beginPath()
+        ctx.strokeStyle = actualColor
+        ctx.lineWidth = 2
 
     prices.forEach((price, i) => {
       const x = (i / (prices.length - 1)) * canvas.offsetWidth
-      const y = canvas.offsetHeight - ((price - min) / range) * canvas.offsetHeight
+      const y =
+        canvas.offsetHeight - ((price - min) / range) * canvas.offsetHeight
 
       if (i === 0) {
         ctx.moveTo(x, y)
