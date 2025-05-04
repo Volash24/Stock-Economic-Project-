@@ -55,43 +55,6 @@ export default async function StockDetail({
     const changePct = ((quote.c - quote.pc) / quote.pc) * 100
     const changeAmt = quote.c - quote.pc
 
-    // +++ Determine initial line color +++
-    const initialLineColor = changeAmt >= 0 ? "#22c55e" : "#ef4444"; // Green if up/flat, Red if down
-
-    // 3) Fetch initial historical candles (e.g., 1hour) from FMP via our API route
-    const defaultInterval = '1hour';
-    const histRes = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/stock/fmp-candles?symbol=${symbol}&interval=${defaultInterval}`,
-      {
-        cache: "no-store",
-      }
-    );
-
-    let initialStockHistory: Candle[] = []; // Initialize with empty array
-    if (!histRes.ok) {
-      // Log error but proceed with empty initial data for the chart section
-      console.error(
-        `Failed to fetch initial ${defaultInterval} historical data for ${symbol}. Status: ${histRes.status}. The chart component will attempt to load.`
-      );
-      // Don't return here, let the StockChartSection handle subsequent fetches/errors
-    } else {
-        try {
-            initialStockHistory = (await histRes.json()) as Candle[];
-            if (!Array.isArray(initialStockHistory)) {
-                console.error(`Invalid initial historical data format received for ${symbol} (Interval: ${defaultInterval}). Expected array.`);
-                initialStockHistory = []; // Reset to empty if format is wrong
-            }
-            else if (initialStockHistory.length === 0) {
-                console.warn(`Empty initial historical data received for ${symbol} (Interval: ${defaultInterval})`);
-            } else {
-                console.log(`Received ${initialStockHistory.length} initial historical data points for ${symbol} (Interval: ${defaultInterval})`);
-            }
-        } catch (jsonError) {
-            console.error(`Error parsing initial historical data JSON for ${symbol} (Interval: ${defaultInterval}):`, jsonError);
-            initialStockHistory = []; // Reset to empty on JSON parse error
-        }
-    }
-
     // 4) Fetch peers & their change%
     const peersRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/stock/peers?symbol=${symbol}`)
     const peers: string[] = peersRes.ok ? await peersRes.json() : []
@@ -149,7 +112,7 @@ export default async function StockDetail({
           <Separator className="my-4 bg-zinc-800" />
 
           {/* --- Render the new Client Component for Chart and Tabs --- */}
-          <StockChartSection initialData={initialStockHistory} symbol={symbol} initialLineColor={initialLineColor} />
+          <StockChartSection symbol={symbol} />
           {/* --- End Client Component --- */}
 
           {/* About Section */}
