@@ -1,0 +1,35 @@
+{
+  "base_url": "http://127.0.0.1:5000",
+  "endpoints": {
+    "fundamental_analysis": {
+      "method": "GET",
+      "path": "/fundamental_stock_data/{symbol}",
+      "description": "Returns fundamental analysis for a stock symbol"
+    },
+    "technical_analysis": {
+      "method": "GET",
+      "path": "/technical_stock_data/{symbol}",
+      "description": "Returns technical indicators"
+    },
+    "economic_data_cpi": {
+      "method": "GET",
+      "path": "/economic_data?type=cpi",
+      "description": "Consumer Price Index"
+    },
+    "macro_box": {
+      "method": "GET",
+      "path": "/macro_box",
+      "description": "Macro quadrant + image info"
+    },
+    "macro_image": {
+      "method": "GET",
+      "path": "/static/macro_box.png",
+      "description": "Macro quadrant image"
+    },
+    "market_news": {
+      "method": "GET",
+      "path": "/market_news",
+      "description": "Market news headlines"
+    }
+  }
+}
