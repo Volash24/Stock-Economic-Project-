@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAVIntraday } from '@/lib/alphaVantage';
+import { getFmpHistoricalData } from '@/lib/fmp';
 
 export async function GET(req: NextRequest) {
   const symbol = req.nextUrl.searchParams.get('symbol')
@@ -7,10 +7,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing symbol' }, { status: 400 })
   }
   try {
-    const candles = await getAVIntraday(symbol)
+    const candles = await getFmpHistoricalData(symbol)
+    if (!candles || candles.length === 0) {
+      console.warn(`No historical candle data returned from FMP for ${symbol}`);
+      return NextResponse.json([]);
+    }
     return NextResponse.json(candles)
   } catch (err) {
-    console.error('AlphaVantage error:', err)
-    return NextResponse.json({ error: 'Failed to load AV data' }, { status: 502 })
+    console.error(`Error fetching FMP historical data for ${symbol}:`, err)
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json(
+      {
+        error: `Failed to fetch historical candle data for ${symbol}`,
+        details: errorMessage,
+      },
+      { status: 500 }
+    );
   }
 }

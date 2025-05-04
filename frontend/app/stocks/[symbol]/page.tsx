@@ -3,6 +3,7 @@ import { ArrowDown, Maximize, Settings, AlertCircle } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
+import { StockChartSection } from "@/components/stock/StockChartSection"
 
 export const dynamic = "force-dynamic" // ensures this page is always server-rendered
 
@@ -54,52 +55,38 @@ export default async function StockDetail({
     const changePct = ((quote.c - quote.pc) / quote.pc) * 100
     const changeAmt = quote.c - quote.pc
 
-    // 3) Fetch historical candles from Alpha Vantage
-    const histRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/stock/av-candles?symbol=${symbol}`, {
-      cache: "no-store",
-    })
+    // 3) Fetch initial historical candles (e.g., 1hour) from FMP via our API route
+    const defaultInterval = '1hour';
+    const histRes = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/stock/fmp-candles?symbol=${symbol}&interval=${defaultInterval}`,
+      {
+        cache: "no-store",
+      }
+    );
 
+    let initialStockHistory: Candle[] = []; // Initialize with empty array
     if (!histRes.ok) {
-      console.error("Historical data API error:", histRes.status)
-
-      return (
-        <div className="min-h-screen bg-black text-white">
-          <div className="container mx-auto px-4 py-6 max-w-7xl">
-            <div className="mb-2">
-              <h1 className="text-3xl font-bold">{profile.name || symbol}</h1>
-              <div className="flex flex-col mt-1">
-                <span className="text-4xl font-bold">${price.toFixed(2)}</span>
-                <div className="flex flex-col mt-1">
-                  <div className="text-orange-500 flex items-center">
-                    {changeAmt < 0 && <ArrowDown className="h-4 w-4 mr-1" />}
-                    <span className="font-medium">
-                      {changeAmt < 0 ? "-" : "+"}${Math.abs(changeAmt).toFixed(2)} ({Math.abs(changePct).toFixed(2)}%)
-                    </span>{" "}
-                    <span className="ml-1">Today</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center h-[400px] bg-zinc-900 rounded-md mt-8">
-              <div className="text-center">
-                <AlertCircle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-white mb-2">Historical Data Unavailable</h3>
-                <p className="text-zinc-400">We couldn't load chart data for {symbol}</p>
-                <p className="text-xs text-zinc-500 mt-4">API Status: {histRes.status}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    }
-
-    const stockHistory = (await histRes.json()) as Candle[]
-
-    if (!stockHistory || stockHistory.length === 0) {
-      console.error("Empty historical data received")
+      // Log error but proceed with empty initial data for the chart section
+      console.error(
+        `Failed to fetch initial ${defaultInterval} historical data for ${symbol}. Status: ${histRes.status}. The chart component will attempt to load.`
+      );
+      // Don't return here, let the StockChartSection handle subsequent fetches/errors
     } else {
-      console.log(`Received ${stockHistory.length} historical data points`)
+        try {
+            initialStockHistory = (await histRes.json()) as Candle[];
+            if (!Array.isArray(initialStockHistory)) {
+                console.error(`Invalid initial historical data format received for ${symbol} (Interval: ${defaultInterval}). Expected array.`);
+                initialStockHistory = []; // Reset to empty if format is wrong
+            }
+            else if (initialStockHistory.length === 0) {
+                console.warn(`Empty initial historical data received for ${symbol} (Interval: ${defaultInterval})`);
+            } else {
+                console.log(`Received ${initialStockHistory.length} initial historical data points for ${symbol} (Interval: ${defaultInterval})`);
+            }
+        } catch (jsonError) {
+            console.error(`Error parsing initial historical data JSON for ${symbol} (Interval: ${defaultInterval}):`, jsonError);
+            initialStockHistory = []; // Reset to empty on JSON parse error
+        }
     }
 
     // 4) Fetch peers & their change%
@@ -134,10 +121,6 @@ export default async function StockDetail({
                   </span>{" "}
                   <span className="ml-1">Today</span>
                 </div>
-                {/* After-hours data would go here if available */}
-                <div className="text-orange-500 text-sm mt-0.5">
-                  <span>-$0.00 (-0.00%) After-hours</span>
-                </div>
               </div>
             </div>
           </div>
@@ -162,37 +145,9 @@ export default async function StockDetail({
 
           <Separator className="my-4 bg-zinc-800" />
 
-          {/* Chart */}
-          <div className="mt-6 mb-4 h-[400px]">
-            <CandlestickChart
-              data={stockHistory}
-              positiveColor="#22c55e"
-              negativeColor="#f97316"
-              lineColor="#f97316"
-              showCandles={false}
-              height={400}
-            />
-          </div>
-
-          {/* Time period selectors */}
-          <div className="mt-2">
-            <Tabs defaultValue="1D" className="w-full">
-              <TabsList className="bg-transparent border-b border-zinc-800 w-full justify-start h-auto p-0">
-                {["1D", "1W", "1M", "3M", "YTD", "1Y", "5Y", "MAX"].map((period) => (
-                  <TabsTrigger
-                    key={period}
-                    value={period}
-                    className="px-4 py-2 rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500 text-zinc-400 hover:text-white"
-                  >
-                    {period}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <TabsContent value="1D" className="mt-0">
-                {/* Content is the chart above, we're just using tabs for the selector UI */}
-              </TabsContent>
-            </Tabs>
-          </div>
+          {/* --- Render the new Client Component for Chart and Tabs --- */}
+          <StockChartSection initialData={initialStockHistory} symbol={symbol} />
+          {/* --- End Client Component --- */}
 
           {/* About Section */}
           <div className="mt-12">
@@ -200,30 +155,37 @@ export default async function StockDetail({
             <Separator className="mb-4 bg-zinc-800" />
 
             <p className="text-zinc-300 mb-2">
-              {profile.name}, Inc. engages in the design, manufacture, and sale of smartphones, personal computers,
-              tablets, wearables and accessories, and other varieties of related services. It operates through the
-              following geographical segments: Americas, Europe, Greater China, Japan, and Rest of Asia Pacific.
+              {profile.description ||
+               `${profile.companyName || symbol}, Inc. engages in the design, manufacture, and sale of smartphones...`}
             </p>
             <button className="text-orange-500 text-sm mb-8">Show more</button>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4 mb-8">
               <div>
                 <p className="text-zinc-400 text-sm mb-1">CEO</p>
-                <p className="text-white">{profile.ceo || "Timothy Donald Cook"}</p>
+                <p className="text-white">{profile.ceo || "N/A"}</p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Employees</p>
-                <p className="text-white">{profile.employees?.toLocaleString() || "164,000"}</p>
+                <p className="text-white">
+                  {profile.fullTimeEmployees
+                    ? parseInt(profile.fullTimeEmployees).toLocaleString()
+                    : "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Headquarters</p>
                 <p className="text-white">
-                  {profile.city ? `${profile.city}, ${profile.state || profile.country}` : "Cupertino, California"}
+                  {profile.city
+                    ? `${profile.city}, ${profile.state || profile.country}`
+                    : "N/A"}
                 </p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Founded</p>
-                <p className="text-white">{profile.ipo ? new Date(profile.ipo).getFullYear() : "1976"}</p>
+                <p className="text-white">
+                  {profile.ipoDate ? new Date(profile.ipoDate).getFullYear() : "N/A"}
+                </p>
               </div>
             </div>
 
@@ -234,46 +196,50 @@ export default async function StockDetail({
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Market cap</p>
                 <p className="text-white">
-                  {profile.marketCapitalization ? `${profile.marketCapitalization.toFixed(2)}T` : "3.08T"}
+                  {profile.mktCap
+                    ? `${(profile.mktCap / 1_000_000_000_000).toFixed(2)}T`
+                    : "N/A"}
                 </p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Price-Earnings ratio</p>
-                <p className="text-white">{profile.pe || "33.91"}</p>
+                <p className="text-white">{profile.pe?.toFixed(2) || "N/A"}</p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Dividend yield</p>
-                <p className="text-white">
-                  {profile.dividendYield ? `${(profile.dividendYield * 100).toFixed(2)}%` : "0.47%"}
-                </p>
+                <p className="text-white">N/A</p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Average volume</p>
-                <p className="text-white">{quote.v ? `${(quote.v / 1000000).toFixed(2)}M` : "52.44M"}</p>
+                <p className="text-white">{quote.avgVolume ? `${(quote.avgVolume / 1_000_000).toFixed(2)}M` : "N/A"}</p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">High today</p>
-                <p className="text-white">${quote.h?.toFixed(2) || "208.03"}</p>
+                <p className="text-white">${quote.h?.toFixed(2) || "N/A"}</p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Low today</p>
-                <p className="text-white">${quote.l?.toFixed(2) || "202.16"}</p>
+                <p className="text-white">${quote.l?.toFixed(2) || "N/A"}</p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Open price</p>
-                <p className="text-white">${quote.o?.toFixed(2) || "206.09"}</p>
+                <p className="text-white">${quote.o?.toFixed(2) || "N/A"}</p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">Volume</p>
-                <p className="text-white">{quote.v ? `${(quote.v / 1000000).toFixed(2)}M` : "101.01M"}</p>
+                <p className="text-white">{quote.v ? `${(quote.v / 1_000_000).toFixed(2)}M` : "N/A"}</p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">52 Week high</p>
-                <p className="text-white">${profile.high52 || "260.10"}</p>
+                <p className="text-white">
+                  {profile.range ? `$${profile.range.split('-')[1]}` : "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-zinc-400 text-sm mb-1">52 Week low</p>
-                <p className="text-white">${profile.low52 || "169.21"}</p>
+                <p className="text-white">
+                  {profile.range ? `$${profile.range.split('-')[0]}` : "N/A"}
+                </p>
               </div>
             </div>
           </div>

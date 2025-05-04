@@ -1,4 +1,3 @@
-// IMPORTANT!!! This endpoint is only available via the Finnhub premium -> switching to the /api/stock/av-candles route handled by the Alpha Vantage API.
 import { NextRequest, NextResponse } from 'next/server';
 import { getCandles } from '@/lib/finnhub';
 
