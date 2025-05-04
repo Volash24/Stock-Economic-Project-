@@ -18,8 +18,8 @@ export async function fetchStockList(): Promise<StockListItem[]> {
       // Fetch quote and historical data in parallel for each symbol directly
       const [quote, historyData] = await Promise.all([
         getFmpQuote(symbol),
-        // Fetch ~30 days of historical data for the sparkline
-        getFmpHistoricalData(symbol, 30) // historyData is already number[]
+        // Fetch ~7 days of historical data for the sparkline
+        getFmpHistoricalData(symbol, 7) // historyData is already number[]
       ]);
 
       if (!quote) {
