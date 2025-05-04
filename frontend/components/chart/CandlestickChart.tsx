@@ -38,10 +38,12 @@ export function CandlestickChart({
   data,
   positiveColor = "#22c55e", // green-500
   negativeColor = "#ef4444", // red-500
-  lineColor = "#f97316", // orange-500
+  lineColor = "#22c55e",     // +++ Default line color to green +++
   showCandles = false,
   height = 400,
 }: CandlestickChartProps) {
+  console.log(`CandlestickChart: Received data prop with ${data?.length ?? 0} items. First item:`, data?.[0]);
+
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<any> | null>(null)
@@ -49,61 +51,59 @@ export function CandlestickChart({
   const [error, setError] = useState<string | null>(null)
   const { resolvedTheme } = useTheme()
   const isDarkTheme = resolvedTheme === "dark"
-  const [isContainerReady, setIsContainerReady] = useState(false)
 
-  // First effect: Check if container is ready
   useEffect(() => {
-    if (containerRef.current) {
-      // Make sure the container has dimensions
-      const { clientWidth, clientHeight } = containerRef.current
-      if (clientWidth > 0 && clientHeight > 0) {
-        setIsContainerReady(true)
-      } else {
-        // If container exists but has no dimensions, use a timeout to check again
-        const timer = setTimeout(() => {
-          if (containerRef.current) {
-            setIsContainerReady(true)
-          }
-        }, 100)
-        return () => clearTimeout(timer)
-      }
-    }
-  }, [])
+    console.log("CandlestickChart: Chart effect running. Data length:", data?.length || 0);
 
-  // Second effect: Initialize chart once container is ready
-  useEffect(() => {
-    // Debug data
-    console.log("Chart data received:", data?.length || 0, "items")
-    console.log("Container ready:", isContainerReady)
-
-    if (!isContainerReady) {
-      return // Wait until container is ready
-    }
-
-    if (!containerRef.current) {
-      console.error("Chart container ref is not available")
-      setError("Chart container not found")
-      setIsLoading(false)
-      return
-    }
-
+    // Ensure data is valid
     if (!data || data.length === 0) {
-      console.error("No data available for chart")
-      setError("No data available")
-      setIsLoading(false)
-      return
+      console.log("CandlestickChart: No data, skipping chart creation.");
+      setIsLoading(false); // Stop loading if no data
+      setError(null); // Clear previous errors if data becomes empty
+      return;
     }
+
+    // Ensure container ref is available
+    if (!containerRef.current) {
+      console.error("CandlestickChart: Container ref is not available yet.");
+      // This might happen on fast refreshes, potentially retry or log error
+      // For now, we'll just prevent chart creation this cycle.
+      setError("Chart container not found during initialization.")
+      setIsLoading(false);
+      return;
+    }
+
+    // Ensure container has dimensions before creating chart
+    const { clientWidth, clientHeight } = containerRef.current;
+    console.log(`CandlestickChart: Container check inside main effect - Width: ${clientWidth}, Height: ${clientHeight}`);
+    if (clientWidth === 0 || clientHeight === 0) {
+        console.warn("CandlestickChart: Container has zero dimensions. Chart creation delayed.");
+        // We could implement a small delay/retry here, but often the next data update will trigger the effect again when dimensions are ready.
+        // If this happens consistently, layout issues might need fixing.
+        setError("Chart container not ready (zero dimensions)."); // Optional error state
+        setIsLoading(false); // Stop visual loading state
+        return; // Stop chart creation for now
+    }
+
+    // If we reach here, data and container are ready
+    setIsLoading(true); // Show loading specifically for chart creation/update
+    setError(null); // Clear previous errors
 
     try {
-      // Ensure container has dimensions
-      const containerWidth = containerRef.current.clientWidth || 800
+      console.log("CandlestickChart: Attempting to create/update chart with dimensions:", clientWidth, "x", clientHeight);
+      console.log("CandlestickChart: Container ref object:", containerRef.current);
 
-      console.log("Creating chart with width:", containerWidth, "height:", height)
+      // Cleanup previous chart instance if it exists
+      if (chartRef.current) {
+        console.log("CandlestickChart: Removing previous chart instance.");
+        chartRef.current.remove();
+        chartRef.current = null;
+        seriesRef.current = null;
+      }
 
-      // Chart initialization
       const chart = createChart(containerRef.current, {
-        width: containerWidth,
-        height,
+        width: clientWidth,
+        height: clientHeight,
         layout: {
           background: { color: "#000000" },
           textColor: "#9ca3af", // gray-400
@@ -137,32 +137,31 @@ export function CandlestickChart({
         handleScale: {
           axisPressedMouseMove: true,
         },
-      })
+      });
 
-      let series: ISeriesApi<any>
-
+      let series: ISeriesApi<any>;
       if (showCandles) {
         // Candlestick series
+        console.log("CandlestickChart: Creating Candlestick series");
         const candlestickSeries = chart.addSeries(CandlestickSeries, {
           upColor: positiveColor,
           downColor: negativeColor,
           borderVisible: false,
           wickUpColor: positiveColor,
           wickDownColor: negativeColor,
-        })
-
-        // Prepare and set data
+        });
         const ohlcData: CandlestickData<UTCTimestamp>[] = data.map((d) => ({
           time: d.time,
           open: d.open,
           high: d.high,
           low: d.low,
           close: d.close,
-        }))
-        candlestickSeries.setData(ohlcData)
-        series = candlestickSeries
+        }));
+        candlestickSeries.setData(ohlcData);
+        series = candlestickSeries;
       } else {
         // Line series
+        console.log(`CandlestickChart: Creating Line series with color: ${lineColor}`);
         const lineSeries = chart.addSeries(LineSeries, {
           color: lineColor,
           lineWidth: 2,
@@ -170,82 +169,80 @@ export function CandlestickChart({
           crosshairMarkerRadius: 4,
           lastValueVisible: false,
           priceLineVisible: false,
-        })
-
-        // Prepare and set data
+        });
         const lineData: LineData<UTCTimestamp>[] = data.map((d) => ({
           time: d.time,
           value: d.close,
-        }))
-        lineSeries.setData(lineData)
-        series = lineSeries
+        }));
+        lineSeries.setData(lineData);
+        series = lineSeries;
       }
 
-      // Store references
-      chartRef.current = chart
-      seriesRef.current = series
+      chartRef.current = chart;
+      seriesRef.current = series;
+      chart.timeScale().fitContent();
+      console.log("CandlestickChart: Chart created/updated successfully");
 
-      // Fit content
-      chart.timeScale().fitContent()
-      setIsLoading(false)
-      console.log("Chart created successfully")
-
-      // Resize handling
-      const handleResize = () => {
-        if (containerRef.current && chartRef.current) {
-          chartRef.current.applyOptions({ width: containerRef.current.clientWidth })
-        }
-      }
-      window.addEventListener("resize", handleResize)
-
-      return () => {
-        window.removeEventListener("resize", handleResize)
-        chart.remove()
-      }
     } catch (err) {
-      console.error("Error creating chart:", err)
-      setError(err instanceof Error ? err.message : "Failed to create chart")
-      setIsLoading(false)
+      console.error("CandlestickChart: Error during chart creation/update:", err);
+      setError(err instanceof Error ? err.message : "Failed to create/update chart");
+    } finally {
+      setIsLoading(false); // Finish loading state
     }
-  }, [data, positiveColor, negativeColor, lineColor, showCandles, height, isContainerReady])
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-full flex items-center justify-center">
-        <div className="space-y-3 w-full px-6">
-          <Skeleton className="h-[300px] w-full bg-zinc-800" />
-          <div className="flex justify-between">
-            <Skeleton className="h-4 w-[100px] bg-zinc-800" />
-            <Skeleton className="h-4 w-[60px] bg-zinc-800" />
-          </div>
-        </div>
-      </div>
-    )
-  }
+    // Setup resize listener
+    const handleResize = () => {
+      if (containerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ width: containerRef.current.clientWidth });
+      }
+    };
+    window.addEventListener("resize", handleResize);
 
-  if (error) {
-    return (
-      <div className="w-full h-[400px] flex items-center justify-center bg-zinc-900 rounded-md">
-        <div className="text-center p-6">
-          <AlertCircle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">Failed to load chart</h3>
-          <p className="text-zinc-400 mb-4">{error}</p>
-          <p className="text-zinc-500 text-sm">Check your network connection and API configuration</p>
-        </div>
-      </div>
-    )
-  }
+    // Cleanup function
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (chartRef.current) {
+        console.log("CandlestickChart: Cleaning up chart instance.");
+        chartRef.current.remove();
+        chartRef.current = null;
+        seriesRef.current = null;
+      }
+    };
+  }, [data, positiveColor, negativeColor, lineColor, showCandles, height]);
 
   return (
     <div className="relative w-full" style={{ height: `${height}px` }}>
-      <div ref={containerRef} className="w-full h-full" />
-      {(!data || data.length === 0) && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 rounded-md">
+      <div ref={containerRef} className="w-full h-full bg-black" />
+
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
+          <div className="space-y-3 w-full px-6">
+            <Skeleton className="h-[80%] w-full bg-zinc-800" />
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-[100px] bg-zinc-800" />
+              <Skeleton className="h-4 w-[60px] bg-zinc-800" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!isLoading && error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
+          <div className="text-center p-6 bg-zinc-900 rounded-md">
+            <AlertCircle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">Failed to load chart</h3>
+            <p className="text-zinc-400 mb-4 text-sm">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {!isLoading && !error && (!data || data.length === 0) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
           <div className="text-center">
             <p className="text-zinc-400">No chart data available</p>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

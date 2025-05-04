@@ -55,6 +55,9 @@ export default async function StockDetail({
     const changePct = ((quote.c - quote.pc) / quote.pc) * 100
     const changeAmt = quote.c - quote.pc
 
+    // +++ Determine initial line color +++
+    const initialLineColor = changeAmt >= 0 ? "#22c55e" : "#ef4444"; // Green if up/flat, Red if down
+
     // 3) Fetch initial historical candles (e.g., 1hour) from FMP via our API route
     const defaultInterval = '1hour';
     const histRes = await fetch(
@@ -146,7 +149,7 @@ export default async function StockDetail({
           <Separator className="my-4 bg-zinc-800" />
 
           {/* --- Render the new Client Component for Chart and Tabs --- */}
-          <StockChartSection initialData={initialStockHistory} symbol={symbol} />
+          <StockChartSection initialData={initialStockHistory} symbol={symbol} initialLineColor={initialLineColor} />
           {/* --- End Client Component --- */}
 
           {/* About Section */}

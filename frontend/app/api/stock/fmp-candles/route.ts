@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getFmpIntradayCandles } from '../../../lib/fmp'; // Adjust path as needed
+import { getFmpIntradayCandles } from '@/lib/fmp';
 import { type Candle } from '@/components/chart/CandlestickChart'; // Adjust path as needed
 
 export const dynamic = 'force-dynamic'; // Ensure fresh data on each request
@@ -40,6 +40,9 @@ export async function GET(request: NextRequest) {
         // Optionally, you could return a different status code like 204 No Content,
         // but returning an empty array might be simpler for the frontend.
     }
+
+    // +++ Log raw candles before returning +++
+    console.log(`API route: Raw candles data being sent for ${symbol}/${interval}:`, JSON.stringify(candles.slice(0, 5), null, 2)); // Log first 5 candles
 
     console.log(`API route: Successfully fetched ${candles.length} candles for ${symbol}/${interval}`);
     return NextResponse.json(candles);
