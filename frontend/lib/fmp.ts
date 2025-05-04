@@ -94,20 +94,9 @@ async function fetchFmpWithCache(
     // Check for potential errors within the JSON response itself if FMP uses that pattern
     // e.g., if (data["Error Message"]) { ... throw ... }
 
-    // --- ADD CHECK: Prevent caching empty array for historical data ---
-    // Treat '[]' from historical endpoint as a failure, preventing cache pollution.
-    if (endpointPath.startsWith('/historical-price-eod/') && Array.isArray(data) && data.length === 0) {
-      console.warn(`Received empty array from FMP endpoint ${endpointPath}, treating as fetch failure, not caching.`);
-      // Throw an error to prevent caching and signal failure to the caller.
-      // The caller (getFmpHistoricalData) will catch this and return [] appropriately.
-      throw new Error(`FMP endpoint ${endpointPath} returned an unexpected empty array.`);
-    }
-    // --- END CHECK ---
-
     // 4. Store successful response in Redis cache
     if (!process.env.DISABLE_REDIS_CACHE) {
       try {
-        // This code now only runs if the data wasn't an empty array for historical endpoint
         await redis.set(cacheKey, JSON.stringify(data), 'EX', revalidateSeconds);
         console.log(`Stored successful FMP response in Redis cache for ${cacheKey} with TTL ${revalidateSeconds}s`);
       } catch (redisError) {
@@ -268,45 +257,40 @@ export const getFmpQuote = async (symbol: string): Promise<FmpQuote | null> => {
  * @returns An array of closing prices for the sparkline.
  */
 export const getFmpHistoricalData = async (symbol: string, limit?: number): Promise<number[]> => {
-  // Note: FMP free plan might have limitations on historical data range.
-  // Consider adding 'from'/'to' params to fetchFmpWithCache if needed for paid plans.
-  // Caching historical data: Use a longer TTL as EOD data doesn't change intraday.
-  const cacheTTL = 43200; // 12 hours
-  const dataPointsToFetch = 35; // Fetch slightly more than limit in case of weekends/holidays
+  const cacheTTL = 3600; // Cache daily chart data for 1 hour, maybe slightly stale but likely available
 
   try {
-    // --- Use the standard EOD endpoint with timeseries param ---
-    // Expecting response like: { symbol: string, historical: FmpHistoricalPrice[] }
-    const data: FmpHistoricalResponse = await fetchFmpWithCache(
-        `/historical-price-eod/${symbol}`, 
-        { timeseries: dataPointsToFetch }, // Request specific number of data points
+    // --- Use the 1-day historical chart endpoint (similar to intraday but daily interval) ---
+    // Expecting response like: FmpHistoricalChartItem[]
+    const data: FmpHistoricalChartItem[] = await fetchFmpWithCache(
+        `/historical-chart/1day/${symbol}`,
+        {}, // FMP returns recent data by default
         cacheTTL
     );
-    // --- END ENDPOINT CHANGE ---
 
-    // --- BEGIN MODIFIED LOGGING & VALIDATION for standard endpoint ---
-    console.log(`Raw FMP EOD historical data received for ${symbol}:`, JSON.stringify(data, null, 2));
+    // --- BEGIN VALIDATION for historical chart endpoint ---
+    console.log(`Raw FMP 1day historical chart data received for ${symbol}: ${data?.length} points`);
 
     // Validate the response structure
-    if (!data || !Array.isArray(data.historical)) {
-        console.error(`Invalid historical data format received for ${symbol} from FMP /historical-price-eod endpoint. Received:`, data);
+    if (!Array.isArray(data)) {
+        console.error(`Invalid historical data format received for ${symbol} from FMP /historical-chart/1day endpoint. Expected array, Received:`, data);
         return [];
     }
-    if (data.historical.length === 0) {
-        console.warn(`Empty 'historical' array received for ${symbol} from FMP /historical-price-eod endpoint.`);
-        // Returning empty array is valid here, chart will just be empty
+    if (data.length === 0) {
+        console.warn(`Empty array received for ${symbol} from FMP /historical-chart/1day endpoint.`);
+        return []; // Return early if no data points
     }
-    // --- END MODIFIED LOGGING & VALIDATION ---
+    // --- END VALIDATION ---
 
 
     // Transform FMP historical data to just closing prices
-    const prices: number[] = data.historical
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Ensure chronological order by date
+    const prices: number[] = data
+      .sort((a, b) => new Date(a.date + 'Z').getTime() - new Date(b.date + 'Z').getTime()) // Ensure chronological order by date (assuming UTC)
       .map(item => item.close); // Extract the closing price
 
     // Apply limit if specified (after fetch and transformation)
     const limitedPrices = limit ? prices.slice(-limit) : prices;
-    console.log(`Returning ${limitedPrices.length} historical prices for ${symbol} (FMP /historical-price-eod)`);
+    console.log(`Returning ${limitedPrices.length} historical prices for ${symbol} (from FMP /historical-chart/1day)`);
     return limitedPrices;
 
   } catch (error) {

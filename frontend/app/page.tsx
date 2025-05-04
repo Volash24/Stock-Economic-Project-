@@ -126,7 +126,9 @@ export default async function Dashboard() {
                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Symbol</th>
                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Price</th>
                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Change</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Chart</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                      Chart <span className="text-xs text-zinc-500">(1W)</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="[&_tr:last-child]:border-0">

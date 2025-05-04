@@ -27,7 +27,10 @@ export function Sparkline({ data, color }: SparklineProps) {
     ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight)
 
     const prices = data
-    if (prices.length === 0) return
+    if (!prices || prices.length < 2) {
+      console.warn('Sparkline received insufficient data:', prices)
+      return
+    }
 
     // Compute bounds
     const min = Math.min(...prices)
