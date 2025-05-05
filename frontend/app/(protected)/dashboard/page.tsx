@@ -18,7 +18,7 @@ const top50Symbols = [
 
 export default async function Dashboard() {
   const [allStocks, favoriteSymbolsList] = await Promise.all([
-    fetchStockList(),
+    fetchStockList(top50Symbols),
     getFavoriteStocks()
   ]);
 

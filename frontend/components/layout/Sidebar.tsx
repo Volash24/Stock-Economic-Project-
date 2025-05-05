@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, BookmarkIcon, Home, LineChart, Settings, Star, TrendingUp, Search } from "lucide-react"
+import { BarChart3, BookmarkIcon, Home, LineChart, Settings, Star, Search } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useSearch } from "@/context/SearchContext"
 import { Button } from "@/components/ui/button"
+import Logo from "@/components/Logo"
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -41,9 +42,9 @@ export function Sidebar() {
     <SidebarComponent>
       <SidebarHeader className="border-b">
         <div className="flex h-16 items-center justify-between px-4">
-          <Link href="/frontend/public" className="flex items-center gap-2">
-            <TrendingUp className="h-6 w-6" />
-            <span className="text-xl font-bold">Trade Lens</span>
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+            <Logo className="h-6 w-6" />
+            Trade Lens
           </Link>
           <Button
             variant="ghost"
@@ -70,7 +71,7 @@ export function Sidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={isActive("/market")}>
                   <Link href="/market">
                     <BarChart3 className="h-4 w-4" />
                     <span>Market</span>
@@ -78,7 +79,7 @@ export function Sidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={isActive("/portfolio")}>
                   <Link href="/portfolio">
                     <LineChart className="h-4 w-4" />
                     <span>Portfolio</span>
@@ -101,7 +102,7 @@ export function Sidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={isActive("/watchlist/tech")}>
                   <Link href="/watchlist/tech">
                     <BookmarkIcon className="h-4 w-4" />
                     <span>Tech Stocks</span>
@@ -109,7 +110,7 @@ export function Sidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={isActive("/watchlist/finance")}>
                   <Link href="/watchlist/finance">
                     <BookmarkIcon className="h-4 w-4" />
                     <span>Finance</span>
@@ -117,7 +118,7 @@ export function Sidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={isActive("/watchlist/energy")}>
                   <Link href="/watchlist/energy">
                     <BookmarkIcon className="h-4 w-4" />
                     <span>Energy</span>

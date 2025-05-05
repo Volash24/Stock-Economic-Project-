@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { useSearch } from "@/context/SearchContext"
+import Logo from "@/components/Logo"
 
 export function Header() {
   const { theme, setTheme } = useTheme()
@@ -49,6 +50,15 @@ export function Header() {
       <div className="flex h-16 items-center px-4 md:px-6">
         <div className="flex items-center gap-2 md:hidden">
           <SidebarTrigger />
+          <Link href="/" className="flex items-center">
+            <Logo className="h-6 w-6" />
+          </Link>
+        </div>
+        <div className="hidden md:flex items-center gap-2">
+           <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+              <Logo className="h-6 w-6" />
+              Trade Lens
+            </Link>
         </div>
         <div className="ml-auto flex items-center gap-4">
           <Button

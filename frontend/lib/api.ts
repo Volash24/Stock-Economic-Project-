@@ -8,13 +8,14 @@ export interface StockListItem {
 }
 
 // Define symbols here or import from a central config if preferred
-const SYMBOLS_TO_FETCH = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA']; // Example list - adjust as needed
+// const SYMBOLS_TO_FETCH = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA']; // Removed hardcoded list
 
-export async function fetchStockList(): Promise<StockListItem[]> {
+export async function fetchStockList(symbols: string[]): Promise<StockListItem[]> { // Added symbols parameter
   // Removed: const res = await fetch(...)
 
   try {
-    const stockListPromises = SYMBOLS_TO_FETCH.map(async (symbol) => {
+    // Use the provided symbols array instead of the hardcoded one
+    const stockListPromises = symbols.map(async (symbol) => {
       // Fetch quote and historical data in parallel for each symbol directly
       const [quote, historyData] = await Promise.all([
         getFmpQuote(symbol),

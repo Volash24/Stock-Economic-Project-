@@ -423,7 +423,7 @@ export const searchFmpSymbols = async (
     limit: number = 10,
     exchange?: string
 ): Promise<SearchResult[]> => {
-    const endpointPath = `/search-ticker`;
+    const endpointPath = `/search`;
     const params: Record<string, string | number> = { query, limit };
     if (exchange) {
         params.exchange = exchange;

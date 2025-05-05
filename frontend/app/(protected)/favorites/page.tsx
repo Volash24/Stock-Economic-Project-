@@ -3,6 +3,11 @@ import { Suspense } from 'react';
 import { fetchStockList } from '@/lib/api'; // Import the function used in dashboard
 // import StockCard from '@/components/StockCard'; // Assuming you have a component to display stock info
 // import { fetchStockDataBatch } from '@/lib/stock-api'; // Assuming you have a function to fetch stock data
+import Link from 'next/link';
+import { Sparkline } from "@/components/chart/Sparkline";
+import { Badge } from "@/components/ui/badge";
+import { ArrowDown, ArrowUp } from "lucide-react";
+import { FavoriteButton } from "@/components/buttons/FavoriteButton";
 
 async function FavoriteStocksList() {
     const favoriteSymbols = await getFavoriteStocks();
@@ -12,7 +17,7 @@ async function FavoriteStocksList() {
     }
 
     // Fetch all stock data (similar to dashboard)
-    const allStocksData = await fetchStockList();
+    const allStocksData = await fetchStockList(favoriteSymbols);
 
     // Filter the data to include only favorited stocks
     const favoriteStocksData = allStocksData.filter(stock =>
@@ -20,13 +25,32 @@ async function FavoriteStocksList() {
     );
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
             {favoriteStocksData.map(stock => (
-                 <div key={stock.symbol} className="border p-4 rounded shadow">
-                    <h3 className="text-lg font-semibold">{stock.symbol}</h3>
-                    <p>Price: {stock.price}</p>
-                    {/* Add your StockCard or other display logic here */}
-                     {/* You might want to add the favorite star here too, already filled */}
+                 <div key={stock.symbol} className="border p-4 rounded shadow flex flex-col space-y-2">
+                    <div className="flex justify-between items-center">
+                        <Link href={`/stocks/${stock.symbol}`} className="text-lg font-semibold hover:underline">
+                            {stock.symbol}
+                        </Link>
+                        <FavoriteButton
+                          stockSymbol={stock.symbol}
+                          initialIsFavorite={true} // Always true on favorites page
+                        />
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-xl font-medium">${stock.price.toFixed(2)}</span>
+                        <Badge variant={stock.change > 0 ? "success" : "destructive"} className="text-xs">
+                            {stock.change > 0 ? (
+                                <ArrowUp className="h-3 w-3 mr-1" />
+                            ) : (
+                                <ArrowDown className="h-3 w-3 mr-1" />
+                            )}
+                            {Math.abs(stock.change).toFixed(2)}%
+                        </Badge>
+                    </div>
+                    <div className="w-full h-16"> {/* Adjusted height for card layout */}
+                        <Sparkline data={stock.history} color={stock.change > 0 ? "#22c55e" : "#ef4444"} />
+                    </div>
                 </div>
             ))}
         </div>
