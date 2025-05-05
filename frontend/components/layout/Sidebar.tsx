@@ -2,6 +2,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { BarChart3, BookmarkIcon, Home, LineChart, Settings, TrendingUp } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Sidebar as SidebarComponent,
   SidebarContent,
@@ -17,9 +19,19 @@ import {
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { data: session, status } = useSession()
 
   const isActive = (path: string) => {
     return pathname === path
+  }
+
+  const getInitials = (name?: string | null) => {
+    if (!name) return ""
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
   }
 
   return (
@@ -96,10 +108,24 @@ export function Sidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t">
-        <SidebarMenu>
+      <SidebarFooter className="border-t p-4">
+        {status === "loading" ? (
+          <div className="h-10 w-full animate-pulse rounded bg-muted"></div>
+        ) : session?.user ? (
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={session.user.image ?? undefined} alt={session.user.name ?? ""} />
+              <AvatarFallback>{getInitials(session.user.name)}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{session.user.name}</span>
+              <span className="text-xs text-muted-foreground">{session.user.email}</span>
+            </div>
+          </div>
+        ) : null }
+        <SidebarMenu className="mt-4">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild isActive={isActive("/settings")}>
               <Link href="/settings">
                 <Settings className="h-4 w-4" />
                 <span>Settings</span>
