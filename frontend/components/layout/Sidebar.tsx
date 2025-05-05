@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, BookmarkIcon, Home, LineChart, Settings, Star, Search } from "lucide-react"
+import { Settings, Star, Search, Sun, Moon } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -19,11 +19,19 @@ import {
 import { useSearch } from "@/context/SearchContext"
 import { Button } from "@/components/ui/button"
 import Logo from "@/components/Logo"
+import { useTheme } from "next-themes"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const { openSearch } = useSearch()
+  const { theme, setTheme } = useTheme()
 
   const isActive = (path: string) => {
     return pathname === path
@@ -46,88 +54,45 @@ export function Sidebar() {
             <Logo className="h-6 w-6" />
             Trade Lens
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground -mr-2"
-            onClick={openSearch}
-            aria-label="Open search"
-          >
-            <Search className="h-5 w-5" />
-          </Button>
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/")}>
-                  <Link href="/frontend/public">
-                    <Home className="h-4 w-4" />
-                    <span>Overview</span>
-                  </Link>
+        <SidebarMenu className="p-4">
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/favorites")}>
+              <Link href="/favorites">
+                <Star className="h-4 w-4" />
+                <span>Favorites</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={openSearch}>
+              <Search className="h-4 w-4" />
+              <span>Search</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton className="w-full justify-start">
+                  <Settings className="h-4 w-4" />
+                  <span>Settings</span>
                 </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/market")}>
-                  <Link href="/market">
-                    <BarChart3 className="h-4 w-4" />
-                    <span>Market</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/portfolio")}>
-                  <Link href="/portfolio">
-                    <LineChart className="h-4 w-4" />
-                    <span>Portfolio</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/favorites")}>
-                  <Link href="/favorites">
-                    <Star className="h-4 w-4" />
-                    <span>Favorites</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Watchlists</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/watchlist/tech")}>
-                  <Link href="/watchlist/tech">
-                    <BookmarkIcon className="h-4 w-4" />
-                    <span>Tech Stocks</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/watchlist/finance")}>
-                  <Link href="/watchlist/finance">
-                    <BookmarkIcon className="h-4 w-4" />
-                    <span>Finance</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/watchlist/energy")}>
-                  <Link href="/watchlist/energy">
-                    <BookmarkIcon className="h-4 w-4" />
-                    <span>Energy</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48" side="bottom" align="start">
+                <DropdownMenuItem onClick={() => setTheme('light')}>
+                  <Sun className="mr-2 h-4 w-4" />
+                  <span>Light</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')}>
+                  <Moon className="mr-2 h-4 w-4" />
+                  <span>Dark</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="border-t p-4">
         {status === "loading" ? (
@@ -144,16 +109,6 @@ export function Sidebar() {
             </div>
           </div>
         ) : null }
-        <SidebarMenu className="mt-4">
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/settings")}>
-              <Link href="/settings">
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
       </SidebarFooter>
     </SidebarComponent>
   )

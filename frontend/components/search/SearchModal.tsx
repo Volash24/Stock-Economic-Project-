@@ -99,7 +99,7 @@ export function SearchModal() {
           </DialogDescription>
         </DialogHeader>
         <div className="relative px-6 pb-4">
-          <SearchIcon className="absolute left-9 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <SearchIcon className="absolute left-9 top-[40%] -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             type="search"
             placeholder="Search (e.g., AAPL, Apple)..."

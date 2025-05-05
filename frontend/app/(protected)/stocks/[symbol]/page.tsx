@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { StockChartSection } from "@/components/stock/StockChartSection"
+import { StockAboutSection } from "@/components/stock/StockAboutSection"
 
 export const dynamic = "force-dynamic" // ensures this page is always server-rendered
 
@@ -116,97 +117,93 @@ export default async function StockDetail({
           {/* --- End Client Component --- */}
 
           {/* About Section */}
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-4">About</h2>
-            <Separator className="mb-4 bg-zinc-800" />
+          <StockAboutSection
+            description={profile.description}
+            companyName={profile.companyName}
+            symbol={symbol}
+          />
 
-            <p className="text-zinc-300 mb-2">
-              {profile.description ||
-               `${profile.companyName || symbol}, Inc. engages in the design, manufacture, and sale of smartphones...`}
-            </p>
-            <button className="text-orange-500 text-sm mb-8">Show more</button>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4 mb-8">
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">CEO</p>
-                <p className="text-white">{profile.ceo || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Employees</p>
-                <p className="text-white">
-                  {profile.fullTimeEmployees
-                    ? parseInt(profile.fullTimeEmployees).toLocaleString()
-                    : "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Headquarters</p>
-                <p className="text-white">
-                  {profile.city
-                    ? `${profile.city}, ${profile.state || profile.country}`
-                    : "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Founded</p>
-                <p className="text-white">
-                  {profile.ipoDate ? new Date(profile.ipoDate).getFullYear() : "N/A"}
-                </p>
-              </div>
+          {/* Key Info Section (Moved outside About) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4 mb-8 mt-8">
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">CEO</p>
+              <p className="text-white">{profile.ceo || "N/A"}</p>
             </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Employees</p>
+              <p className="text-white">
+                {profile.fullTimeEmployees
+                  ? parseInt(profile.fullTimeEmployees).toLocaleString()
+                  : "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Headquarters</p>
+              <p className="text-white">
+                {profile.city
+                  ? `${profile.city}, ${profile.state || profile.country}`
+                  : "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Founded</p>
+              <p className="text-white">
+                {profile.ipoDate ? new Date(profile.ipoDate).getFullYear() : "N/A"}
+              </p>
+            </div>
+          </div>
 
-            <h2 className="text-2xl font-bold mb-4">Key statistics</h2>
-            <Separator className="mb-4 bg-zinc-800" />
+          <h2 className="text-2xl font-bold mb-4">Key statistics</h2>
+          <Separator className="mb-4 bg-zinc-800" />
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4 mb-6">
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Market cap</p>
-                <p className="text-white">
-                  {profile.mktCap
-                    ? `${(profile.mktCap / 1_000_000_000_000).toFixed(2)}T`
-                    : "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Price-Earnings ratio</p>
-                <p className="text-white">{profile.pe?.toFixed(2) || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Dividend yield</p>
-                <p className="text-white">N/A</p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Average volume</p>
-                <p className="text-white">{quote.avgVolume ? `${(quote.avgVolume / 1_000_000).toFixed(2)}M` : "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">High today</p>
-                <p className="text-white">${quote.h?.toFixed(2) || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Low today</p>
-                <p className="text-white">${quote.l?.toFixed(2) || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Open price</p>
-                <p className="text-white">${quote.o?.toFixed(2) || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">Volume</p>
-                <p className="text-white">{quote.v ? `${(quote.v / 1_000_000).toFixed(2)}M` : "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">52 Week high</p>
-                <p className="text-white">
-                  {profile.range ? `$${profile.range.split('-')[1]}` : "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="text-zinc-400 text-sm mb-1">52 Week low</p>
-                <p className="text-white">
-                  {profile.range ? `$${profile.range.split('-')[0]}` : "N/A"}
-                </p>
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4 mb-6">
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Market cap</p>
+              <p className="text-white">
+                {profile.mktCap
+                  ? `${(profile.mktCap / 1_000_000_000_000).toFixed(2)}T`
+                  : "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Price-Earnings ratio</p>
+              <p className="text-white">{profile.pe?.toFixed(2) || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Dividend yield</p>
+              <p className="text-white">N/A</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Average volume</p>
+              <p className="text-white">{quote.avgVolume ? `${(quote.avgVolume / 1_000_000).toFixed(2)}M` : "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">High today</p>
+              <p className="text-white">${quote.h?.toFixed(2) || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Low today</p>
+              <p className="text-white">${quote.l?.toFixed(2) || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Open price</p>
+              <p className="text-white">${quote.o?.toFixed(2) || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Volume</p>
+              <p className="text-white">{quote.v ? `${(quote.v / 1_000_000).toFixed(2)}M` : "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">52 Week high</p>
+              <p className="text-white">
+                {profile.range ? `$${profile.range.split('-')[1]}` : "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">52 Week low</p>
+              <p className="text-white">
+                {profile.range ? `$${profile.range.split('-')[0]}` : "N/A"}
+              </p>
             </div>
           </div>
         </div>
