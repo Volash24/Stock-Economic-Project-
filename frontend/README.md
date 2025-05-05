@@ -1,17 +1,22 @@
 # Frontend Documentation
 
-This directory contains the Next.js frontend application for the Stock & Economic Data project. It provides the user interface, fetches data via internal API routes (which proxy external financial APIs like **FMP (Financial Modeling Prep)** and **Finnhub**), and displays stock information, news, and charts.
+This directory contains the Next.js frontend application for the Stock & Economic Data project. It provides the user interface, handles authentication, fetches data via internal API routes (which proxy external financial APIs like **FMP (Financial Modeling Prep)** and **Finnhub**), and displays stock information, news, and charts.
 
 ## Tech Stack
 
 *   **Framework:** Next.js (App Router)
 *   **Language:** TypeScript
-*   **Styling:** Tailwind CSS
-*   **UI Components:** shadcn/ui
+*   **Styling:** Tailwind CSS v4
+*   **UI Components:** shadcn/ui (using Radix UI primitives)
+*   **Icons:** Lucide React
+*   **Authentication:** NextAuth.js
+*   **Database ORM:** Prisma (with @auth/prisma-adapter)
 *   **Charting:** lightweight-charts
-*   **State Management:** React Server Components, `useState`, `useEffect` (as needed)
+*   **State Management:** React Server Components, Client Components (`useState`, `useEffect`, etc.)
+*   **API Client:** Axios
+*   **Utility Libraries:** `clsx`, `tailwind-merge`, `tailwindcss-animate`, `class-variance-authority`
 *   **Linting/Formatting:** ESLint
-*   **API Caching:** Redis (optional, for FMP), Next.js fetch cache (for Finnhub)
+*   **API Caching:** Redis (optional, via `ioredis`), Next.js fetch cache
 
 ## Project Structure
 

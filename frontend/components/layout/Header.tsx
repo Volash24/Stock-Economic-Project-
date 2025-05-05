@@ -1,7 +1,6 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Bell,
   Moon,
@@ -28,10 +27,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
+import { useSearch } from "@/context/SearchContext"
 
 export function Header() {
   const { theme, setTheme } = useTheme()
   const { data: session, status } = useSession()
+  const { openSearch } = useSearch()
 
   const getInitials = (name?: string | null) => {
     if (!name) return ""
@@ -48,17 +49,16 @@ export function Header() {
         <div className="flex items-center gap-2 md:hidden">
           <SidebarTrigger />
         </div>
-        <div className="flex items-center gap-2 md:ml-auto">
-          <form className="relative w-full max-w-[400px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search stocks..."
-              className="w-full bg-background pl-8 md:w-[300px] lg:w-[400px]"
-            />
-          </form>
-        </div>
         <div className="ml-auto flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground"
+            onClick={openSearch}
+            aria-label="Open search"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"

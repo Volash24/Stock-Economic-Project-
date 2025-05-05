@@ -410,4 +410,59 @@ export const getFmpPeers = async (symbol: string): Promise<string[]> => {
 // Add more FMP functions here as needed (e.g., search, news, financials)
 // Remember to wrap them with try/catch and use fetchFmpWithCache
 
-// Add more FMP functions here as needed (e.g., search, news, financials) 
+/**
+ * Searches for stock symbols based on a query.
+ * Ref: /stable/search-symbol?query=AAPL
+ * @param query - The search query (company name or symbol).
+ * @param limit - Optional limit for the number of results.
+ * @param exchange - Optional exchange filter.
+ * @returns An array of search results.
+ */
+export const searchFmpSymbols = async (
+    query: string,
+    limit: number = 10,
+    exchange?: string
+): Promise<SearchResult[]> => {
+    const endpointPath = `/search-ticker`;
+    const params: Record<string, string | number> = { query, limit };
+    if (exchange) {
+        params.exchange = exchange;
+    }
+
+    // Cache search results for a short time (e.g., 5 minutes)
+    const cacheTTL = 300;
+
+    try {
+        const data: SearchResult[] = await fetchFmpWithCache(
+            endpointPath,
+            params,
+            cacheTTL
+        );
+
+        // Validate response structure
+        if (!Array.isArray(data)) {
+             console.error(`Invalid search result format received for query "${query}" from FMP ${endpointPath}. Expected array, Received:`, data);
+             return [];
+        }
+
+        console.log(`Returning ${data.length} search results for query "${query}"`);
+        return data;
+
+    } catch (error) {
+        console.error(`Failed to search FMP symbols for query "${query}":`, error);
+        return [];
+    }
+};
+
+// Interface for SearchResult (can be moved to a types file if preferred)
+// Make sure this matches the expected structure in SearchModal.tsx
+interface SearchResult {
+    symbol: string;
+    name: string;
+    currency: string;
+    exchangeFullName: string;
+    exchange: string;
+}
+
+
+// Add more FMP functions here as needed (e.g., news, financials)

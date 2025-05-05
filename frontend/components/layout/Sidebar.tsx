@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, BookmarkIcon, Home, LineChart, Settings, TrendingUp } from "lucide-react"
+import { BarChart3, BookmarkIcon, Home, LineChart, Settings, TrendingUp, Search } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -16,10 +16,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useSearch } from "@/context/SearchContext"
+import { Button } from "@/components/ui/button"
 
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
+  const { openSearch } = useSearch()
 
   const isActive = (path: string) => {
     return pathname === path
@@ -37,11 +40,20 @@ export function Sidebar() {
   return (
     <SidebarComponent>
       <SidebarHeader className="border-b">
-        <div className="flex h-16 items-center px-4">
+        <div className="flex h-16 items-center justify-between px-4">
           <Link href="/frontend/public" className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6" />
-            <span className="text-xl font-bold">StockDash</span>
+            <span className="text-xl font-bold">Trade Lens</span>
           </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground -mr-2"
+            onClick={openSearch}
+            aria-label="Open search"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
         </div>
       </SidebarHeader>
       <SidebarContent>
