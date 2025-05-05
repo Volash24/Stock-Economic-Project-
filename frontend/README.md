@@ -28,7 +28,7 @@ frontend/
 │   │       ├── av-candles/   # API route (currently uses FMP for historical data)
 │   │       ├── candles/      # Finnhub candles API route
 │   │       ├── company-news/ # Finnhub company news API route
-│   │       ├── fmp-candles/  # FMP historical/intraday candles API route
+│   │       ├── fmp-candles/  # FMP historical/intraday candles API route (includes server-side aggregation)
 │   │       ├── list/         # (Currently unused API route dir)
 │   │       ├── news/         # Finnhub general market news API route
 │   │       ├── peers/        # FMP company peers API route
@@ -43,6 +43,7 @@ frontend/
 │   ├── layout.tsx            # Root layout component
 │   └── page.tsx              # Main landing page component (Stock List)
 ├── components/               # Reusable React components
+│   ├── buttons/              # Button components
 │   ├── chart/                # Charting components
 │   │   ├── CandlestickChart.tsx # Displays candlestick/line charts (lightweight-charts)
 │   │   └── Sparkline.tsx     # Displays simple line charts for lists
@@ -51,15 +52,21 @@ frontend/
 │   │   └── Sidebar.tsx       # Application sidebar
 │   ├── stock/                # Stock-specific UI components
 │   │   └── StockChartSection.tsx # Section containing the main chart and controls
+│   ├── search/               # Search related components
 │   ├── ui/                   # Base UI components (from shadcn/ui)
+│   ├── Logo.tsx              # Application Logo component
+│   ├── providers.tsx         # Context providers (e.g., Theme)
 │   └── theme-provider.tsx    # Theme provider for light/dark mode
 ├── hooks/                    # Custom React hooks
 │   └── use-mobile.ts         # Hook to detect mobile screen size
 ├── lib/                      # Library/helper functions & API clients
-│   ├── alphaVantage.ts       # Alpha Vantage API client logic (Currently seems unused by API routes)
+│   ├── actions/              # Next.js Server Actions
+│   ├── alphaVantage.ts       # Alpha Vantage API client logic (Currently unused by API routes/pages)
 │   ├── api.ts                # Client-side data fetching functions (e.g., fetchStockList using FMP)
 │   ├── finnhub.ts            # Finnhub API client logic (Handles News, Search, Candles)
 │   ├── fmp.ts                # Financial Modeling Prep (FMP) API client logic (Handles Quote, Profile, Peers, Candles)
+│   ├── generated/            # (Likely Prisma generated types/client)
+│   ├── prisma.ts             # Prisma client instance setup
 │   └── utils.ts              # Utility functions (e.g., `cn` for Tailwind classes)
 ├── node_modules/             # Project dependencies
 ├── public/                   # Static assets (images, svgs)
@@ -86,9 +93,10 @@ frontend/
 *   **`app/stocks/[symbol]/page.tsx`**: Dynamic page for individual stock details. Fetches data (profile, quote, historical candles, news, peers) via internal API routes (using FMP and Finnhub) and displays company info, stats, news, peers, and a detailed `CandlestickChart` within the `StockChartSection`.
 *   **`components/chart/CandlestickChart.tsx`**: Renders interactive candlestick or line charts using `lightweight-charts`. Takes historical price data.
 *   **`components/chart/Sparkline.tsx`**: Renders minimal line charts for previews.
-*   **`components/layout/Header.tsx`**: Top navigation bar, potentially including search functionality.
+*   **`components/layout/Header.tsx`**: Top navigation bar, potentially including search functionality and `Logo`.
 *   **`components/layout/Sidebar.tsx`**: Side navigation or information panel.
 *   **`components/stock/StockChartSection.tsx`**: Encapsulates the main chart on the stock detail page, possibly including time range selectors or other chart controls.
+*   **`components/providers.tsx`**: Wraps application parts with necessary context providers.
 
 ## API Routes (`app/api/stock/*`)
 
@@ -100,18 +108,20 @@ These server-side routes act as a backend proxy to external financial APIs, hand
 *   **`GET /api/stock/search?q={query}`**: Searches for stock symbols (**from Finnhub**).
 *   **`GET /api/stock/news?category={category}`**: Fetches general market news (**from Finnhub**).
 *   **`GET /api/stock/company-news?symbol={...}`**: Fetches company-specific news (**from Finnhub**).
-*   **`GET /api/stock/av-candles?symbol={symbol}`**: Fetches intraday/historical candles (**currently uses FMP**). *(Route name might be legacy)*.
+*   **`GET /api/stock/av-candles?symbol={symbol}`**: Fetches *historical* candles (**uses FMP's `getFmpHistoricalData` function**). *(Route name is misleading)*.
 *   **`GET /api/stock/candles?symbol={...}`**: Fetches historical candles (**from Finnhub** - potentially requires premium).
-*   **`GET /api/stock/fmp-candles?symbol={...}`**: Fetches historical/intraday candles (**from FMP**).
+*   **`GET /api/stock/fmp-candles?symbol={...}`**: Fetches historical/intraday candles (**from FMP**), handles various time ranges, and performs server-side aggregation (e.g., daily to weekly/monthly).
 
 *(Note: Refer to the specific `route.ts` file within each directory for exact parameters and response structure.)*
 
 ## Libraries (`lib/`)
 
-*   **`alphaVantage.ts`**: Client for Alpha Vantage API. Seems currently **unused** by the main API routes. May contain legacy code or be used elsewhere. Requires `ALPHA_VANTAGE_API_KEY*` env variables if used. Includes Redis caching logic (`fetchAVWithCache`).
+*   **`actions/`**: Contains Next.js Server Actions, likely for mutations or specific server-side logic triggered by the client.
+*   **`alphaVantage.ts`**: Client for Alpha Vantage API, including key rotation and Redis caching (`fetchAVWithCache`). Currently seems **unused** by the main API routes or pages. Requires `ALPHA_VANTAGE_API_KEY*` env variables if used.
 *   **`finnhub.ts`**: Client for Finnhub API. Used for News, Search, and specific Candle data. Uses Next.js fetch caching (`revalidate`). Requires `FINNHUB_API_KEY` env variable.
-*   **`fmp.ts`**: Client for Financial Modeling Prep API. Used for Quotes, Profiles, Peers, and Candle data. Implements optional Redis caching (`fetchFMPWithCache`). Requires `FMP_API_KEY` and optional `REDIS_URL` env variables.
+*   **`fmp.ts`**: Client for Financial Modeling Prep API. Used for Quotes, Profiles, Peers, and Candle data (including the data for `/api/stock/av-candles`). Implements optional Redis caching (`fetchFMPWithCache`). Requires `FMP_API_KEY` and optional `REDIS_URL` env variables.
 *   **`api.ts`**: Client-side functions primarily used by the main page (`page.tsx`) to fetch the stock list directly via FMP helpers.
+*   **`prisma.ts`**: Sets up and exports the Prisma Client instance, used for database interactions (likely user auth data via `@auth/prisma-adapter`).
 *   **`utils.ts`**: General utility functions (e.g., `cn` for Tailwind class merging).
 
 ## Setup & Running

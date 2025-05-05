@@ -14,7 +14,7 @@ async function FavoriteStocksList() {
     const favoriteSymbols = await getFavoriteStocks();
 
     if (favoriteSymbols.length === 0) {
-        return <p className="text-center text-gray-500 mt-8">You haven't favorited any stocks yet.</p>;
+        return <p className="text-center text-gray-500 mt-8">You haven&apos;t favorited any stocks yet.</p>;
     }
 
     // Fetch all stock data (similar to dashboard)

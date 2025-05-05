@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Search as SearchIcon, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { debounce } from 'lodash';
+import { Command, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Badge } from "@/components/ui/badge";
+import { Kbd } from "@/components/ui/kbd";
 
 interface SearchResult {
   symbol: string;
@@ -14,6 +17,7 @@ interface SearchResult {
   currency: string;
   exchangeFullName: string;
   exchange: string;
+  exchangeShortName?: string;
 }
 
 export function SearchModal() {
@@ -23,6 +27,7 @@ export function SearchModal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedFetchResults = useCallback(
     debounce(async (searchQuery: string) => {
       if (!searchQuery || searchQuery.length < 2) {
@@ -89,6 +94,10 @@ export function SearchModal() {
     }
   };
 
+  const handleSelect = (symbol: string) => {
+    // Handle selection logic
+  };
+
   return (
     <Dialog open={isSearchOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-0">
@@ -122,31 +131,37 @@ export function SearchModal() {
             </div>
           )}
           {!loading && !error && results.length > 0 && (
-            <ul className="space-y-2">
-              {results.map((stock) => (
-                <li key={stock.symbol + stock.exchange}>
-                  <Link
-                    href={`/stocks/${stock.symbol}`}
-                    className="block p-3 -mx-3 rounded-md hover:bg-muted transition-colors"
-                    onClick={closeSearch} // Close modal on selection
+            <Command>
+              <CommandEmpty>
+                No results found.
+              </CommandEmpty>
+              <CommandGroup heading="Results">
+                {results.map((item) => (
+                  <CommandItem
+                    key={item.symbol}
+                    value={`${item.symbol} - ${item.name}`}
+                    onSelect={() => handleSelect(item.symbol)}
+                    className="flex justify-between items-center cursor-pointer"
                   >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="font-medium">{stock.symbol}</span>
-                        <span className="ml-2 text-xs text-muted-foreground">({stock.exchange})</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground truncate max-w-[60%" title={stock.name}>
-                        {stock.name}
-                      </div>
+                    <div>
+                      <span className="font-medium">{item.symbol}</span>
+                      <span className="text-sm text-gray-500 ml-2 truncate">
+                        {item.name}
+                      </span>
                     </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                    {item.exchangeShortName && (
+                      <Badge variant="outline" className="text-xs">
+                        {item.exchangeShortName}
+                      </Badge>
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
           )}
           {!loading && !error && query.length >= 2 && results.length === 0 && (
             <div className="p-4 text-center text-muted-foreground">
-              No results found for "{query}".
+              No results found for &quot;{query}&quot;.
             </div>
           )}
            {!loading && !error && query.length < 2 && results.length === 0 && (
@@ -154,6 +169,9 @@ export function SearchModal() {
               Enter at least 2 characters to search.
             </div>
           )}
+        </div>
+        <div className="text-center text-sm text-gray-500 py-2 px-4 border-t">
+          Press &quot;Ctrl + K&quot; (or &quot;⌘ + K&quot; on Mac) to search.
         </div>
       </DialogContent>
     </Dialog>

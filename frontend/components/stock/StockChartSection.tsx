@@ -145,7 +145,7 @@ export function StockChartSection({ symbol }: StockChartSectionProps) {
           console.log(`StockChartSection: Adjusting interval from ${selectedInterval} to ${newInterval}`);
           setSelectedInterval(newInterval);
       }
-  }, [selectedRange, availableIntervals]); // Rerun when range or the list of available intervals changes
+  }, [selectedRange, availableIntervals, selectedInterval]); // Rerun when range, available intervals, or selected interval changes
 
   return (
     <div>

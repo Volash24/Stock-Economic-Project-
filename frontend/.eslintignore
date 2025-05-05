@@ -1,0 +1,2 @@
+# Ignore Prisma generated code
+lib/generated/ 

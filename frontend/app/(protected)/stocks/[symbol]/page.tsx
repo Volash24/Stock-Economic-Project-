@@ -35,7 +35,7 @@ export default async function StockDetail({
             <div className="flex items-center justify-center h-[50vh] flex-col">
               <AlertCircle className="h-12 w-12 text-orange-500 mb-4" />
               <h2 className="text-2xl font-bold mb-2">Stock Not Found</h2>
-              <p className="text-zinc-400 mb-6">We couldn't find information for symbol {symbol}</p>
+              <p className="text-zinc-400 mb-6">We couldn&apos;t find information for symbol {symbol}</p>
               <div className="bg-zinc-900 p-4 rounded-md text-left w-full max-w-lg">
                 <h3 className="text-sm font-medium text-zinc-300 mb-2">Debug Information:</h3>
                 <p className="text-xs text-zinc-500">Profile API Status: {profileRes.status}</p>
