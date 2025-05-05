@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, BookmarkIcon, Home, LineChart, Settings, TrendingUp, Search } from "lucide-react"
+import { BarChart3, BookmarkIcon, Home, LineChart, Settings, Star, TrendingUp, Search } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -82,6 +82,14 @@ export function Sidebar() {
                   <Link href="/portfolio">
                     <LineChart className="h-4 w-4" />
                     <span>Portfolio</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/favorites")}>
+                  <Link href="/favorites">
+                    <Star className="h-4 w-4" />
+                    <span>Favorites</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

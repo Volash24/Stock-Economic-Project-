@@ -49,6 +49,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  favoriteStocks FavoriteStock[]
 }
 
 model VerificationToken {
@@ -57,4 +58,14 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model FavoriteStock {
+  id          String @id @default(cuid())
+  userId      String
+  stockSymbol String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stockSymbol]) // Ensure a user can only favorite a stock once
 }

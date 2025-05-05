@@ -4,9 +4,29 @@ import { Sparkline } from "@/components/chart/Sparkline"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { ArrowDown, ArrowUp } from "lucide-react"
+import { getFavoriteStocks } from "@/lib/actions/favorites"
+import { FavoriteButton } from "@/components/buttons/FavoriteButton"
+
+// Define the list of top 50 stock symbols
+const top50Symbols = [
+  "MSFT", "AAPL", "NVDA", "AMZN", "GOOG", "META", "BRK.B", "AVGO", "TSLA", "WMT",
+  "LLY", "JPM", "V", "MA", "NFLX", "XOM", "COST", "ORCL", "PG", "JNJ",
+  "UNH", "HD", "ABBV", "BAC", "KO", "PLTR", "TMUS", "PM", "CRM", "CVX",
+  "WFC", "CSCO", "ABT", "IBM", "MCD", "GE", "MRK", "NOW", "T", "AXP",
+  "MS", "ISRG", "VZ", "PEP", "INTU", "UBER", "GS", "RTX", "BKNG", "BX"
+];
 
 export default async function Dashboard() {
-  const stocks = await fetchStockList()
+  const [allStocks, favoriteSymbolsList] = await Promise.all([
+    fetchStockList(),
+    getFavoriteStocks()
+  ]);
+
+  // Filter stocks to include only those in the top50Symbols list
+  const stocks = allStocks.filter(stock => top50Symbols.includes(stock.symbol));
+
+  // Create a Set for efficient favorite lookup
+  const favoriteSymbols = new Set(favoriteSymbolsList);
 
   return (
     <div className="space-y-6">
@@ -129,6 +149,7 @@ export default async function Dashboard() {
                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
                       Chart <span className="text-xs text-zinc-500">(1W)</span>
                     </th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Favorite</th>
                   </tr>
                 </thead>
                 <tbody className="[&_tr:last-child]:border-0">
@@ -158,6 +179,12 @@ export default async function Dashboard() {
                         <div className="w-24 h-12">
                           <Sparkline data={stock.history} color={stock.change > 0 ? "#22c55e" : "#ef4444"} />
                         </div>
+                      </td>
+                      <td className="p-4 align-middle text-center">
+                        <FavoriteButton
+                          stockSymbol={stock.symbol}
+                          initialIsFavorite={favoriteSymbols.has(stock.symbol)}
+                        />
                       </td>
                     </tr>
                   ))}

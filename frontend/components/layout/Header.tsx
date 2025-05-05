@@ -12,6 +12,7 @@ import {
   BookmarkIcon,
   Settings,
   LogOut,
+  Star,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -111,6 +112,12 @@ export function Header() {
                     <Link href="/portfolio">
                       <LineChart className="mr-2 h-4 w-4" />
                       <span>Portfolio</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/favorites">
+                      <Star className="mr-2 h-4 w-4" />
+                      <span>Favorites</span>
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
