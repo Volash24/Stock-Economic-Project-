@@ -10,6 +10,7 @@ import { debounce } from 'lodash';
 import { Command, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { Kbd } from "@/components/ui/kbd";
+import { useRouter } from 'next/navigation';
 
 interface SearchResult {
   symbol: string;
@@ -26,6 +27,7 @@ export function SearchModal() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedFetchResults = useCallback(
@@ -95,7 +97,9 @@ export function SearchModal() {
   };
 
   const handleSelect = (symbol: string) => {
-    // Handle selection logic
+    // Navigate to the stock page and close the modal
+    router.push(`/stocks/${symbol}`);
+    closeSearch();
   };
 
   return (

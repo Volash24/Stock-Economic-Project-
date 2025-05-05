@@ -54,12 +54,12 @@ export function Header() {
       <div className="flex h-16 items-center px-4 md:px-6">
         <div className="flex items-center gap-2 md:hidden">
           <SidebarTrigger />
-          <Link href="/" className="flex items-center">
+          <Link href="/dashboard" className="flex items-center">
             <Logo className="h-6 w-6" />
           </Link>
         </div>
         <div className="hidden md:flex items-center gap-2">
-           <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+           <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
               <Logo className="h-6 w-6" />
               Trade Lens
             </Link>

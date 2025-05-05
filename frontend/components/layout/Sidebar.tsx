@@ -50,7 +50,7 @@ export function Sidebar() {
     <SidebarComponent>
       <SidebarHeader className="border-b">
         <div className="flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
             <Logo className="h-6 w-6" />
             Trade Lens
           </Link>
@@ -73,10 +73,34 @@ export function Sidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton>
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton>
+                  <Settings className="h-4 w-4" />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="right" align="start">
+                <DropdownMenuItem onClick={() => setTheme("light")}>
+                  <Sun className="mr-2 h-4 w-4" />
+                  <span>Light</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                  <Moon className="mr-2 h-4 w-4" />
+                  <span>Dark</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>System</span>
+                </DropdownMenuItem>
+                {session?.user && (
+                   <DropdownMenuItem onClick={() => signOut()}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sign Out</span>
+                   </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
@@ -95,12 +119,6 @@ export function Sidebar() {
             </div>
           </div>
         ) : null }
-        {session?.user && (
-            <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={() => signOut()}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign Out</span>
-            </Button>
-        )}
       </SidebarFooter>
     </SidebarComponent>
   )

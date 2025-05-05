@@ -9,65 +9,40 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StockCard } from "@/components/ui/stock-card"
 import { StockTable } from "@/components/ui/stock-table"
 
-// Define the list of top 50 stock symbols
-const top50Symbols = [
-  "MSFT",
-  "AAPL",
-  "NVDA",
-  "AMZN",
-  "GOOG",
-  "META",
-  "BRK.B",
-  "AVGO",
-  "TSLA",
-  "WMT",
-  "LLY",
-  "JPM",
-  "V",
-  "MA",
-  "NFLX",
-  "XOM",
-  "COST",
-  "ORCL",
-  "PG",
-  "JNJ",
-  "UNH",
-  "HD",
-  "ABBV",
-  "BAC",
-  "KO",
-  "PLTR",
-  "TMUS",
-  "PM",
-  "CRM",
-  "CVX",
-  "WFC",
-  "CSCO",
-  "ABT",
-  "IBM",
-  "MCD",
-  "GE",
-  "MRK",
-  "NOW",
-  "T",
-  "AXP",
-  "MS",
-  "ISRG",
-  "VZ",
-  "PEP",
-  "INTU",
-  "UBER",
-  "GS",
-  "RTX",
-  "BKNG",
-  "BX",
+// Define the list of top 250 stock symbols
+const top250Symbols = [
+    "AAPL", "MSFT", "NVDA", "AMZN", "META", "BRK.B", "GOOGL", "AVGO", "TSLA", "GOOG",
+    "JPM", "LLY", "V", "NFLX", "XOM", "MA", "COST", "WMT", "PG", "JNJ",
+    "UNH", "HD", "ABBV", "KO", "BAC", "PM", "CRM", "PLTR", "WFC", "ORCL",
+    "CSCO", "CVX", "ABT", "MCD", "IBM", "GE", "MRK", "T", "NOW", "ISRG",
+    "PEP", "VZ", "INTU", "GS", "RTX", "UBER", "BKNG", "DIS", "ADBE", "PGR",
+    "TMO", "SPGI", "AMD", "AMGN", "BSX", "CAT", "QCOM", "AXP", "MS", "TXN",
+    "TJX", "SCHW", "BA", "HON", "NEE", "PFE", "BLK", "UNP", "GILD", "SYK",
+    "VRTX", "C", "CMCSA", "DHR", "LOW", "PANW", "DE", "ADP", "AMAT", "TMUS",
+    "COP", "MMC", "CRWD", "GEV", "AMT", "FI", "BMY", "MO", "SO", "LMT",
+    "CME", "ICE", "BX", "ADI", "PLD", "APH", "ELV", "DUK", "SBUX", "LRCX",
+    "CI", "WELL", "ANET", "KLAC", "MCK", "MDLZ", "CVS", "MU", "INTC", "WM",
+    "EQIX", "CDNS", "SHW", "ORLY", "AJG", "TDG", "PH", "KKR", "CEG", "MMM",
+    "CL", "MSI", "CTAS", "WMB", "SNPS", "MCO", "ZTS", "UPS", "GD", "COF",
+    "CMG", "NKE", "DASH", "FTNT", "NOC", "PYPL", "ITW", "PNC", "ECL", "USB",
+    "EOG", "AZO", "REGN", "APO", "HCA", "APD", "HWM", "ROP", "EMR", "TRV",
+    "ADSK", "NEM", "BK", "JCI", "AEP", "HLT", "CARR", "MAR", "RCL", "CSX",
+    "ABNB", "CPRT", "WDAY", "FCX", "ALL", "AFL", "DLR", "KMI", "TFC", "RSG",
+    "OKE", "COR", "O", "NSC", "FICO", "SPG", "BDX", "KR", "AIG", "PWR",
+    "PSA", "SRE", "PCAR", "PAYX", "EXC", "VST", "GWW", "FDX", "FAST", "CCI",
+    "D", "KVUE", "DFS", "ROST", "AMP", "AXON", "GM", "EW", "TGT", "MET",
+    "MPC", "KMB", "PSX", "CTVA", "MSCI", "URI", "MNST", "VRSK", "YUM", "LHX",
+    "FIS", "KDP", "CMI", "XEL", "F", "PEG", "ED", "AME", "IDXX", "TTWO",
+    "OTIS", "CTSH", "CHTR", "CBRE", "PCG", "VLO", "PRU", "HES", "BKR", "ETR",
+    "DHI", "TRGP", "CAH", "HIG", "VMC", "RMD", "GLW", "WEC", "EA", "SYY",
+    "VICI", "EBAY", "EFX", "IT", "CSGP", "MLM", "WAB", "NDAQ", "EXR", "GEHC"
 ]
 
 export default async function Dashboard() {
-  const [allStocks, favoriteSymbolsList] = await Promise.all([fetchStockList(top50Symbols), getFavoriteStocks()])
+  const [allStocks, favoriteSymbolsList] = await Promise.all([fetchStockList(top250Symbols), getFavoriteStocks()])
 
-  // Filter stocks to include only those in the top50Symbols list
-  const stocks = allStocks.filter((stock) => top50Symbols.includes(stock.symbol))
+  // Filter stocks to include only those in the top250Symbols list
+  const stocks = allStocks.filter((stock) => top250Symbols.includes(stock.symbol))
 
   // Create a Set for efficient favorite lookup
   const favoriteSymbols = new Set(favoriteSymbolsList)
