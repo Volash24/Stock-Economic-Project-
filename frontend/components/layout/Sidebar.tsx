@@ -1,8 +1,8 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Settings, Star, Search, Sun, Moon } from "lucide-react"
-import { useSession } from "next-auth/react"
+import { Settings, Star, Search, Sun, Moon, LogOut } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Sidebar as SidebarComponent,
@@ -73,24 +73,10 @@ export function Sidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="w-full justify-start">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48" side="bottom" align="start">
-                <DropdownMenuItem onClick={() => setTheme('light')}>
-                  <Sun className="mr-2 h-4 w-4" />
-                  <span>Light</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('dark')}>
-                  <Moon className="mr-2 h-4 w-4" />
-                  <span>Dark</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <SidebarMenuButton>
+              <Settings className="h-4 w-4" />
+              <span>Settings</span>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
@@ -109,6 +95,12 @@ export function Sidebar() {
             </div>
           </div>
         ) : null }
+        {session?.user && (
+            <Button variant="ghost" size="sm" className="w-full justify-start mt-2" onClick={() => signOut()}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign Out</span>
+            </Button>
+        )}
       </SidebarFooter>
     </SidebarComponent>
   )

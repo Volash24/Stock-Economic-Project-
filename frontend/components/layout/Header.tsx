@@ -26,6 +26,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { useSearch } from "@/context/SearchContext"
@@ -61,6 +65,8 @@ export function Header() {
             </Link>
         </div>
         <div className="ml-auto flex items-center gap-4">
+          {/* Remove Search Button */}
+          {/*
           <Button
             variant="ghost"
             size="icon"
@@ -70,20 +76,40 @@ export function Header() {
           >
             <Search className="h-5 w-5" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
+          */}
+          
+          {/* Remove Settings Dropdown */}
+          {/*
+           <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-muted-foreground">
+                  <Settings className="h-5 w-5" />
+                  <span className="sr-only">Settings</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48" align="end" forceMount>
+                <DropdownMenuLabel>Theme</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setTheme('light')}>
+                  <Sun className="mr-2 h-4 w-4" />
+                  <span>Light</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')}>
+                  <Moon className="mr-2 h-4 w-4" />
+                  <span>Dark</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+           </DropdownMenu>
+          */}
+
+          {/* Remove Bell Button */}
+          {/*
           <Button variant="ghost" size="icon" className="text-muted-foreground">
             <Bell className="h-5 w-5" />
             <span className="sr-only">Notifications</span>
           </Button>
+          */}
+
           {status === "loading" ? (
             <div className="h-8 w-20 animate-pulse rounded bg-muted"></div>
           ) : session?.user ? (
@@ -107,21 +133,9 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem asChild>
-                    <Link href="/">
-                      <Home className="mr-2 h-4 w-4" />
-                      <span>Overview</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/market">
-                      <BarChart3 className="mr-2 h-4 w-4" />
-                      <span>Market</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/portfolio">
-                      <LineChart className="mr-2 h-4 w-4" />
-                      <span>Portfolio</span>
+                    <Link href="#" onClick={(e) => { e.preventDefault(); openSearch(); }}>
+                      <Search className="mr-2 h-4 w-4" />
+                      <span>Search</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -132,35 +146,25 @@ export function Header() {
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>Watchlists</DropdownMenuLabel>
-                  <DropdownMenuItem asChild>
-                    <Link href="/watchlist/tech">
-                      <BookmarkIcon className="mr-2 h-4 w-4" />
-                      <span>Tech Stocks</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/watchlist/finance">
-                      <BookmarkIcon className="mr-2 h-4 w-4" />
-                      <span>Finance</span>
-                    </Link>
-                  </DropdownMenuItem>
-                   <DropdownMenuItem asChild>
-                    <Link href="/watchlist/energy">
-                      <BookmarkIcon className="mr-2 h-4 w-4" />
-                      <span>Energy</span>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                 <DropdownMenuSeparator />
-                 <DropdownMenuItem asChild>
-                   <Link href="/settings">
-                     <Settings className="mr-2 h-4 w-4" />
-                     <span>Settings</span>
-                   </Link>
-                 </DropdownMenuItem>
-                 <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Theme</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => setTheme('light')}>
+                        <Sun className="mr-2 h-4 w-4" />
+                        <span>Light</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme('dark')}>
+                        <Moon className="mr-2 h-4 w-4" />
+                        <span>Dark</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign Out</span>
